@@ -151,8 +151,32 @@ class Joint_Trainer:
         # self.model = nn.parallel.DataParallel(self.model)
         self.model.cuda()
 
-        self.parameters_to_train = list(self.model.parameters())
-        self.optimizer = optim.Adam(self.parameters_to_train, self.config['optimizer']['lr'])
+        # Separate parameter groups for different learning rates and freezing
+        lora_params = []
+        polar_attn_params = []
+        other_params = []
+
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                if 'lora' in name:
+                    lora_params.append(param)
+                elif 'polar_attn' in name or 'attn_ln' in name:
+                    polar_attn_params.append(param)
+                else:
+                    other_params.append(param)
+
+        # Heuristic: Polar Attention usually needs a slightly higher LR to overcome zero-init gamma
+        # but too high will cause instability. We use a 10x factor by default if not specified.
+        base_lr = self.config['optimizer']['lr']
+        lora_lr = self.config['optimizer'].get('lora_lr', base_lr)
+        polar_lr = self.config['optimizer'].get('polar_attn_lr', base_lr * 5.0) 
+
+        param_groups = [
+            {'params': lora_params, 'lr': lora_lr, 'weight_decay': 1e-4},
+            {'params': polar_attn_params, 'lr': polar_lr, 'weight_decay': 0.0}, # Avoid decaying gamma
+            {'params': other_params, 'lr': base_lr, 'weight_decay': 1e-4}
+        ]
+        self.optimizer = optim.Adam(param_groups)
 
         if self.config.get('load_weights_dir') is not None:
             self.load_model()

@@ -62,6 +62,7 @@ model:
       9: 4
       10: 2
       11: 2
+    use_polar_attention: True
 
 loss: [ {'type': 'silog', 'params': {'loss_weight': 1.0}}, 
         {'type': 'gradient', 'params': {'loss_weight': 1.0, 'scale_num': 4}},
@@ -69,6 +70,8 @@ loss: [ {'type': 'silog', 'params': {'loss_weight': 1.0}},
 
 optimizer:
   lr: 1.e-4
+  lora_lr: 1.e-4 
+  polar_attn_lr: 1.e-5 # 大幅降低学习率，确保 PolarAttention 在 LoRA 稳定后缓慢介入，避免震荡
 epoch_max: 10
 log_frequency: 40
 

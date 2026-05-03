@@ -8,6 +8,7 @@ import cv2
 
 from depth_anything_v2_metric.depth_anything_v2.dpt import DepthAnythingV2
 from .utils import LoRA_Depth_Anything_v2
+from polar_attention import PolarAttention
 
 from argparse import Namespace
 from .models import register
@@ -27,6 +28,7 @@ class PanDA(nn.Module):
         lora = args.lora
         train_decoder = args.train_decoder
         lora_ranks = args.lora_ranks
+        use_polar_attention = args.use_polar_attention
 
         # Pre-defined setting of the model
         model_configs = {
@@ -56,6 +58,8 @@ class PanDA(nn.Module):
             if not train_decoder:
                 for param in self.core.depth_head.parameters():
                     param.requires_grad = False
+            if use_polar_attention:
+                self.core.depth_head.use_polar_attention = True
         else:
             self.core = depth_anything
     
@@ -110,7 +114,7 @@ class PanDA(nn.Module):
         return image, (h, w)
     
 @register('panda')
-def make_model(midas_model_type='vits', fine_tune_type='none', min_depth=0.1, max_depth=10.0, lora=True, train_decoder=True, lora_ranks=None):
+def make_model(midas_model_type=\'vits\', fine_tune_type=\'none\', min_depth=0.1, max_depth=10.0, lora=True, train_decoder=True, lora_ranks=None, use_polar_attention=False):
     args = Namespace()
     args.midas_model_type = midas_model_type
     args.fine_tune_type = fine_tune_type
@@ -119,4 +123,5 @@ def make_model(midas_model_type='vits', fine_tune_type='none', min_depth=0.1, ma
     args.lora = lora
     args.train_decoder = train_decoder
     args.lora_ranks = lora_ranks
+    args.use_polar_attention = use_polar_attention
     return PanDA(args)
