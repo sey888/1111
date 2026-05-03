@@ -8,7 +8,7 @@ import cv2
 
 from depth_anything_v2_metric.depth_anything_v2.dpt import DepthAnythingV2
 from .utils import LoRA_Depth_Anything_v2
-from polar_attention import PolarAttention
+from .polar_attention import PolarAttention
 
 from argparse import Namespace
 from .models import register

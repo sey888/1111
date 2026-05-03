@@ -7,7 +7,7 @@ from torchvision.transforms import Compose
 from .dinov2 import DINOv2
 from .util.blocks import FeatureFusionBlock, _make_scratch
 from .util.transform import Resize, NormalizeImage, PrepareForNet
-from polar_attention import PolarAttention
+from networks.polar_attention import PolarAttention
 
 
 def _make_fusion_block(features, use_bn, size=None):
